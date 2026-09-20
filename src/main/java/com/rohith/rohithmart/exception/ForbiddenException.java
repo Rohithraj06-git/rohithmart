@@ -1,10 +1,11 @@
 package com.rohith.rohithmart.exception;
 
 /**
- * Exception thrown when authenticated user lacks permissions (HTTP 403).
+ * Exception thrown when user is forbidden from performing an operation (HTTP 403).
  */
-public class ForbiddenException extends AppException {
+public class ForbiddenException extends AuthorizationException {
+
     public ForbiddenException(String message) {
-        super(message, 403);
+        super(message, "FORBIDDEN");
     }
 }

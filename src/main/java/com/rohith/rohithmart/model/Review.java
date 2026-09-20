@@ -1,6 +1,7 @@
 package com.rohith.rohithmart.model;
 
 import java.sql.Timestamp;
+import java.util.Objects;
 
 /**
  * Represents a customer review and rating on a purchased product.
@@ -71,5 +72,30 @@ public class Review {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Review review = (Review) o;
+        return Objects.equals(id, review.id) ||
+                (Objects.equals(productId, review.productId) && Objects.equals(userId, review.userId));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, productId, userId);
+    }
+
+    @Override
+    public String toString() {
+        return "Review{" +
+                "id=" + id +
+                ", productId=" + productId +
+                ", userId=" + userId +
+                ", rating=" + rating +
+                ", comment='" + comment + '\'' +
+                '}';
     }
 }

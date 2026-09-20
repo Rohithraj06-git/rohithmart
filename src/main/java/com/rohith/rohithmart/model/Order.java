@@ -2,6 +2,7 @@ package com.rohith.rohithmart.model;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Objects;
 
 /**
  * Represents a customer purchase order.
@@ -62,5 +63,29 @@ public class Order {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Order order = (Order) o;
+        return Objects.equals(id, order.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Order{" +
+                "id=" + id +
+                ", buyerId=" + buyerId +
+                ", status=" + status +
+                ", totalAmount=" + totalAmount +
+                ", createdAt=" + createdAt +
+                '}';
     }
 }

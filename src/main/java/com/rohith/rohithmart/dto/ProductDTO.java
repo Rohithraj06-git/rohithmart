@@ -5,147 +5,83 @@ import java.sql.Timestamp;
 
 /**
  * Data Transfer Object for Product listings and responses.
+ * Extends canonical ProductResponse for backward compatibility.
  */
-public class ProductDTO {
-    private Long id;
-    private Long sellerId;
-    private String name;
-    private String description;
-    private BigDecimal price;
-    private Integer stockQty;
-    private String category;
-    private String imageUrl;
-    private Timestamp createdAt;
+public class ProductDTO extends ProductResponse {
 
     public ProductDTO() {
+        super();
+    }
+
+    public ProductDTO(Long id, Long sellerId, String name, String description, BigDecimal price,
+                      Integer stockQty, String category, String imageUrl, Timestamp createdAt) {
+        super(id, sellerId, name, description, price, stockQty, category, imageUrl, createdAt);
     }
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getSellerId() {
-        return sellerId;
-    }
-
-    public void setSellerId(Long sellerId) {
-        this.sellerId = sellerId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public Integer getStockQty() {
-        return stockQty;
-    }
-
-    public void setStockQty(Integer stockQty) {
-        this.stockQty = stockQty;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public static class Builder {
-        private final ProductDTO dto = new ProductDTO();
-
+    public static class Builder extends ProductResponse.Builder {
+        @Override
         public Builder id(Long id) {
-            dto.setId(id);
+            super.id(id);
             return this;
         }
 
+        @Override
         public Builder sellerId(Long sellerId) {
-            dto.setSellerId(sellerId);
+            super.sellerId(sellerId);
             return this;
         }
 
+        @Override
         public Builder name(String name) {
-            dto.setName(name);
+            super.name(name);
             return this;
         }
 
+        @Override
         public Builder description(String description) {
-            dto.setDescription(description);
+            super.description(description);
             return this;
         }
 
+        @Override
         public Builder price(BigDecimal price) {
-            dto.setPrice(price);
+            super.price(price);
             return this;
         }
 
+        @Override
         public Builder stockQty(Integer stockQty) {
-            dto.setStockQty(stockQty);
+            super.stockQty(stockQty);
             return this;
         }
 
+        @Override
         public Builder category(String category) {
-            dto.setCategory(category);
+            super.category(category);
             return this;
         }
 
+        @Override
         public Builder imageUrl(String imageUrl) {
-            dto.setImageUrl(imageUrl);
+            super.imageUrl(imageUrl);
             return this;
         }
 
+        @Override
         public Builder createdAt(Timestamp createdAt) {
-            dto.setCreatedAt(createdAt);
+            super.createdAt(createdAt);
             return this;
         }
 
+        @Override
         public ProductDTO build() {
-            return dto;
+            ProductResponse r = super.build();
+            return new ProductDTO(r.getId(), r.getSellerId(), r.getName(), r.getDescription(),
+                    r.getPrice(), r.getStockQty(), r.getCategory(), r.getImageUrl(), r.getCreatedAt());
         }
     }
 }

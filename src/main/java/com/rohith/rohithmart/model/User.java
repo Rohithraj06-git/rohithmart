@@ -1,9 +1,11 @@
 package com.rohith.rohithmart.model;
 
 import java.sql.Timestamp;
+import java.util.Objects;
 
 /**
  * Represents a registered user entity in the database.
+ * Security Note: passwordHash is never exposed in toString() or serialized DTOs.
  */
 public class User {
     private Long id;
@@ -71,5 +73,31 @@ public class User {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id) && Objects.equals(email, user.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, email);
+    }
+
+    @Override
+    public String toString() {
+        // SECURITY: Sensitive credentials and password hashes are strictly masked
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", passwordHash='[PROTECTED]'" +
+                ", role=" + role +
+                ", createdAt=" + createdAt +
+                '}';
     }
 }

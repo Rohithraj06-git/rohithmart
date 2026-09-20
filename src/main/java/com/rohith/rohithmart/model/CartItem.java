@@ -1,6 +1,7 @@
 package com.rohith.rohithmart.model;
 
 import java.sql.Timestamp;
+import java.util.Objects;
 
 /**
  * Represents an item in a buyer's persistent shopping cart.
@@ -61,5 +62,29 @@ public class CartItem {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CartItem cartItem = (CartItem) o;
+        return Objects.equals(id, cartItem.id) ||
+                (Objects.equals(userId, cartItem.userId) && Objects.equals(productId, cartItem.productId));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, userId, productId);
+    }
+
+    @Override
+    public String toString() {
+        return "CartItem{" +
+                "id=" + id +
+                ", userId=" + userId +
+                ", productId=" + productId +
+                ", quantity=" + quantity +
+                '}';
     }
 }

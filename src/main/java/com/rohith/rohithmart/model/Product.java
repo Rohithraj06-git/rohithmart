@@ -2,6 +2,7 @@ package com.rohith.rohithmart.model;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Objects;
 
 /**
  * Represents a product listing in the marketplace.
@@ -102,5 +103,31 @@ public class Product {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Product product = (Product) o;
+        return Objects.equals(id, product.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Product{" +
+                "id=" + id +
+                ", sellerId=" + sellerId +
+                ", name='" + name + '\'' +
+                ", price=" + price +
+                ", stockQty=" + stockQty +
+                ", category='" + category + '\'' +
+                ", createdAt=" + createdAt +
+                '}';
     }
 }

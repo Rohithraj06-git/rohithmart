@@ -2,32 +2,15 @@ package com.rohith.rohithmart.dto;
 
 /**
  * Request payload for user sign in.
+ * Extends canonical LoginRequest for backward compatibility.
  */
-public class LoginRequestDTO {
-    private String email;
-    private String password;
+public class LoginRequestDTO extends LoginRequest {
 
     public LoginRequestDTO() {
+        super();
     }
 
     public LoginRequestDTO(String email, String password) {
-        this.email = email;
-        this.password = password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
+        super(email, password);
     }
 }

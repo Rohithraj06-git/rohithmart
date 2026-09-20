@@ -2,6 +2,7 @@ package com.rohith.rohithmart.model;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Objects;
 
 /**
  * Represents an individual item belonging to an order.
@@ -72,5 +73,29 @@ public class OrderItem {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        OrderItem orderItem = (OrderItem) o;
+        return Objects.equals(id, orderItem.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "OrderItem{" +
+                "id=" + id +
+                ", orderId=" + orderId +
+                ", productId=" + productId +
+                ", quantity=" + quantity +
+                ", unitPrice=" + unitPrice +
+                '}';
     }
 }

@@ -1,66 +1,19 @@
 package com.rohith.rohithmart.dto;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 
 /**
  * Data Transfer Object for Order Items.
+ * Extends OrderItemResponse for full backward compatibility.
  */
-public class OrderItemDTO {
-    private Long id;
-    private Long productId;
-    private String productName;
-    private Integer quantity;
-    private BigDecimal unitPrice;
-    private BigDecimal subtotal;
-
+public class OrderItemDTO extends OrderItemResponse {
     public OrderItemDTO() {
+        super();
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getProductId() {
-        return productId;
-    }
-
-    public void setProductId(Long productId) {
-        this.productId = productId;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
-
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
-    }
-
-    public void setUnitPrice(BigDecimal unitPrice) {
-        this.unitPrice = unitPrice;
-    }
-
-    public BigDecimal getSubtotal() {
-        return subtotal;
-    }
-
-    public void setSubtotal(BigDecimal subtotal) {
-        this.subtotal = subtotal;
+    public OrderItemDTO(Long id, Long orderId, Long productId, String productName,
+                        Integer quantity, BigDecimal unitPrice, BigDecimal subtotal, Timestamp createdAt) {
+        super(id, orderId, productId, productName, quantity, unitPrice, subtotal, createdAt);
     }
 }
