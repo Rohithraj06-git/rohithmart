@@ -2,6 +2,7 @@ package com.rohith.rohithmart.dao;
 
 import com.rohith.rohithmart.model.Role;
 import com.rohith.rohithmart.model.User;
+import com.rohith.rohithmart.util.DatabaseMigrationManager;
 import com.rohith.rohithmart.util.DatabaseUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -54,24 +55,10 @@ class UserDAOTest {
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute("DROP ALL OBJECTS");
-
-            try (InputStream is = getClass().getClassLoader().getResourceAsStream("db/schema.sql")) {
-                assertNotNull(is, "db/schema.sql should be present on test classpath");
-                BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-                StringBuilder sql = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (line.trim().startsWith("--") || line.trim().isEmpty()) {
-                        continue;
-                    }
-                    sql.append(line).append("\n");
-                    if (line.trim().endsWith(";")) {
-                        stmt.execute(sql.toString());
-                        sql.setLength(0);
-                    }
-                }
-            }
         }
+
+        DatabaseMigrationManager migrationManager = new DatabaseMigrationManager(dataSource);
+        migrationManager.migrate();
     }
 
     @Test

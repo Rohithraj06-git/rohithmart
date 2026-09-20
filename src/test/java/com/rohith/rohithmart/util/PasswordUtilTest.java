@@ -25,4 +25,11 @@ class PasswordUtilTest {
         assertThrows(IllegalArgumentException.class, () -> PasswordUtil.hashPassword(""));
         assertThrows(IllegalArgumentException.class, () -> PasswordUtil.hashPassword(null));
     }
+
+    @Test
+    @DisplayName("Verify seed hash matches Password@123")
+    void testSeedHashVerification() {
+        String seedHash = "$2a$10$aehh47.ojjgw70orjtBMte/dSbRoGjNiqYHvjvrjpKK6aCYGSHrHG";
+        assertTrue(PasswordUtil.verifyPassword("Password@123", seedHash));
+    }
 }
