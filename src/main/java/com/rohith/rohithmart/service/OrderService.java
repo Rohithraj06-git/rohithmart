@@ -42,6 +42,15 @@ public interface OrderService {
     List<OrderDTO> getBuyerOrders(Long buyerId) throws AppException;
 
     /**
+     * Retrieves all orders containing items belonging to a specific seller.
+     *
+     * @param sellerId seller user ID
+     * @return list of OrderDTOs
+     * @throws AppException on failure
+     */
+    List<OrderDTO> getSellerOrders(Long sellerId) throws AppException;
+
+    /**
      * Updates status of an order.
      *
      * @param orderId order ID

@@ -7,6 +7,7 @@ package com.rohith.rohithmart.service;
 public class ServiceFactory {
 
     private static final AuthService AUTH_SERVICE = new AuthServiceImpl();
+    private static final UserService USER_SERVICE = new UserServiceImpl();
     private static final ProductService PRODUCT_SERVICE = new ProductServiceImpl();
     private static final CartService CART_SERVICE = new CartServiceImpl();
     private static final OrderService ORDER_SERVICE = new OrderServiceImpl();
@@ -18,6 +19,10 @@ public class ServiceFactory {
 
     public static AuthService getAuthService() {
         return AUTH_SERVICE;
+    }
+
+    public static UserService getUserService() {
+        return USER_SERVICE;
     }
 
     public static ProductService getProductService() {

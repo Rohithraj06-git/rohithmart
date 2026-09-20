@@ -51,7 +51,16 @@ public interface CartService {
     void removeFromCart(Long userId, Long cartItemId) throws AppException;
 
     /**
-     * Calculates the total sum for a list of cart items.
+     * Clears all items from the buyer's cart.
+     *
+     * @param userId buyer user ID
+     * @throws AppException on failure
+     */
+    void clearCart(Long userId) throws AppException;
+
+    /**
+     * Calculates the total sum for a list of cart items on the server.
+     * Never trusts client-provided totals.
      *
      * @param items list of cart items
      * @return total monetary amount

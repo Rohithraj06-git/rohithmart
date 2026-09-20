@@ -35,6 +35,44 @@ public interface ProductDAO {
     List<Product> search(String category, String keyword, String sortBy, int limit, int offset) throws SQLException;
 
     /**
+     * Retrieves products by category.
+     *
+     * @param category category name
+     * @return list of products
+     * @throws SQLException on database failure
+     */
+    List<Product> findByCategory(String category) throws SQLException;
+
+    /**
+     * Retrieves products by category with pagination.
+     *
+     * @param category category name
+     * @param limit maximum results
+     * @param offset starting record offset
+     * @return list of products
+     * @throws SQLException on database failure
+     */
+    List<Product> findByCategory(String category, int limit, int offset) throws SQLException;
+
+    /**
+     * Advanced multi-attribute search and filtering.
+     *
+     * @param filter product filter criteria
+     * @return list of matching products
+     * @throws SQLException on database failure
+     */
+    List<Product> findWithFilters(com.rohith.rohithmart.dto.ProductFilter filter) throws SQLException;
+
+    /**
+     * Counts total products matching multi-attribute filter criteria for pagination.
+     *
+     * @param filter product filter criteria
+     * @return count of matching products
+     * @throws SQLException on database failure
+     */
+    int countFiltered(com.rohith.rohithmart.dto.ProductFilter filter) throws SQLException;
+
+    /**
      * Retrieves all products listed by a given seller.
      *
      * @param sellerId seller's user ID

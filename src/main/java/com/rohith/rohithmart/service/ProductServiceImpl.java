@@ -72,6 +72,40 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public com.rohith.rohithmart.dto.PagedResponse<ProductDTO> searchProductsWithFilters(com.rohith.rohithmart.dto.ProductFilter filter) throws AppException {
+        com.rohith.rohithmart.dto.ProductFilter safeFilter = filter != null ? filter : com.rohith.rohithmart.dto.ProductFilter.builder().build();
+        try {
+            List<Product> list = productDAO.findWithFilters(safeFilter);
+            int totalResults = productDAO.countFiltered(safeFilter);
+
+            List<ProductDTO> dtos = new ArrayList<>(list.size());
+            for (Product p : list) {
+                dtos.add(toDTO(p));
+            }
+            return com.rohith.rohithmart.dto.PagedResponse.of(dtos, safeFilter.getPage(), safeFilter.getSize(), totalResults);
+        } catch (SQLException e) {
+            logger.error("Error searching products with filters", e);
+            throw new AppException("Failed to retrieve filtered products", e, 500);
+        }
+    }
+
+    @Override
+    public List<ProductDTO> getProductsByCategory(String category) throws AppException {
+        ValidationUtil.validateNotBlank(category, "category");
+        try {
+            List<Product> list = productDAO.findByCategory(category);
+            List<ProductDTO> dtos = new ArrayList<>(list.size());
+            for (Product p : list) {
+                dtos.add(toDTO(p));
+            }
+            return dtos;
+        } catch (SQLException e) {
+            logger.error("Error retrieving products by category {}", category, e);
+            throw new AppException("Failed to load products by category", e, 500);
+        }
+    }
+
+    @Override
     public List<ProductDTO> getProductsBySeller(Long sellerId) throws AppException {
         if (sellerId == null || sellerId <= 0) {
             throw new ValidationException("Invalid seller ID");
@@ -185,18 +219,11 @@ public class ProductServiceImpl implements ProductService {
         if (dto == null) {
             throw new ValidationException("Product data is required");
         }
-        if (!ValidationUtil.isNotEmpty(dto.getName())) {
-            throw new ValidationException("Product name cannot be blank");
-        }
-        if (dto.getPrice() == null || dto.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new ValidationException("Price must be a positive value");
-        }
-        if (dto.getStockQty() == null || dto.getStockQty() < 0) {
-            throw new ValidationException("Stock quantity cannot be negative");
-        }
-        if (!ValidationUtil.isNotEmpty(dto.getCategory())) {
-            throw new ValidationException("Category is required");
-        }
+        ValidationUtil.validateProductName(dto.getName());
+        ValidationUtil.validatePrice(dto.getPrice());
+        ValidationUtil.validateStockQuantity(dto.getStockQty());
+        ValidationUtil.validateNotBlank(dto.getCategory(), "category");
+        ValidationUtil.validateDescription(dto.getDescription());
     }
 
     private ProductDTO toDTO(Product p) {

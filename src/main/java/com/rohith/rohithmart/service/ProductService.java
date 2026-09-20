@@ -33,6 +33,24 @@ public interface ProductService {
     List<ProductDTO> searchProducts(String category, String keyword, String sortBy, int page, int pageSize) throws AppException;
 
     /**
+     * Executes advanced search with multi-criteria filtering and returns pagination metadata.
+     *
+     * @param filter product filter criteria
+     * @return PagedResponse containing products, totalPages, totalResults, and page metadata
+     * @throws AppException on processing failure
+     */
+    com.rohith.rohithmart.dto.PagedResponse<ProductDTO> searchProductsWithFilters(com.rohith.rohithmart.dto.ProductFilter filter) throws AppException;
+
+    /**
+     * Retrieves products belonging to a specific category.
+     *
+     * @param category category name
+     * @return list of ProductDTOs
+     * @throws AppException on processing failure
+     */
+    List<ProductDTO> getProductsByCategory(String category) throws AppException;
+
+    /**
      * Retrieves all products created by a specific seller.
      *
      * @param sellerId seller's user ID

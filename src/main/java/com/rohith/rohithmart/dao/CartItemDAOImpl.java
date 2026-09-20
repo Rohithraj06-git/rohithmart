@@ -90,6 +90,28 @@ public class CartItemDAOImpl implements CartItemDAO {
     }
 
     @Override
+    public Optional<CartItem> findById(Long cartItemId) throws SQLException {
+        String sql = "SELECT id, user_id, product_id, quantity, created_at FROM cart_items WHERE id = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, cartItemId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapRow(rs));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public int clearCart(Long userId) throws SQLException {
+        try (Connection conn = DatabaseUtil.getConnection()) {
+            return clearCart(conn, userId);
+        }
+    }
+
+    @Override
     public int clearCart(Connection conn, Long userId) throws SQLException {
         String sql = "DELETE FROM cart_items WHERE user_id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {

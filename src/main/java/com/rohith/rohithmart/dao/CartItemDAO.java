@@ -60,6 +60,24 @@ public interface CartItemDAO {
     boolean delete(Long cartItemId) throws SQLException;
 
     /**
+     * Finds a cart item by its unique ID.
+     *
+     * @param cartItemId cart item ID
+     * @return Optional containing cart item if found
+     * @throws SQLException on database failure
+     */
+    Optional<CartItem> findById(Long cartItemId) throws SQLException;
+
+    /**
+     * Clears all items from a user's cart.
+     *
+     * @param userId user ID
+     * @return number of deleted items
+     * @throws SQLException on database failure
+     */
+    int clearCart(Long userId) throws SQLException;
+
+    /**
      * Clears all items from a user's cart within a transaction.
      *
      * @param conn transaction connection

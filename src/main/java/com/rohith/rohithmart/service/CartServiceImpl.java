@@ -9,6 +9,7 @@ import com.rohith.rohithmart.exception.ResourceNotFoundException;
 import com.rohith.rohithmart.exception.ValidationException;
 import com.rohith.rohithmart.model.CartItem;
 import com.rohith.rohithmart.model.Product;
+import com.rohith.rohithmart.util.ValidationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,11 +115,29 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void updateQuantity(Long userId, Long cartItemId, int quantity) throws AppException {
-        if (cartItemId == null || cartItemId <= 0 || quantity <= 0) {
-            throw new ValidationException("Invalid item ID or quantity");
-        }
+        ValidationUtil.validateId(userId, "userId");
+        ValidationUtil.validateId(cartItemId, "cartItemId");
+        ValidationUtil.validateCartQuantity(quantity);
 
         try {
+            Optional<CartItem> itemOpt = cartItemDAO.findById(cartItemId);
+            if (itemOpt.isEmpty()) {
+                throw new ResourceNotFoundException("Cart item not found with ID: " + cartItemId);
+            }
+            CartItem item = itemOpt.get();
+            if (!item.getUserId().equals(userId)) {
+                throw new com.rohith.rohithmart.exception.ForbiddenException("You are not authorized to update this cart item");
+            }
+
+            Optional<Product> prodOpt = productDAO.findById(item.getProductId());
+            if (prodOpt.isEmpty()) {
+                throw new ResourceNotFoundException("Associated product no longer available");
+            }
+            Product prod = prodOpt.get();
+            if (prod.getStockQty() < quantity) {
+                throw new com.rohith.rohithmart.exception.InsufficientStockException(prod.getId(), quantity, prod.getStockQty());
+            }
+
             cartItemDAO.updateQuantity(cartItemId, quantity);
         } catch (SQLException e) {
             logger.error("Error updating cart quantity", e);
@@ -128,15 +147,34 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void removeFromCart(Long userId, Long cartItemId) throws AppException {
-        if (cartItemId == null || cartItemId <= 0) {
-            throw new ValidationException("Invalid item ID");
-        }
+        ValidationUtil.validateId(userId, "userId");
+        ValidationUtil.validateId(cartItemId, "cartItemId");
 
         try {
+            Optional<CartItem> itemOpt = cartItemDAO.findById(cartItemId);
+            if (itemOpt.isEmpty()) {
+                throw new ResourceNotFoundException("Cart item not found with ID: " + cartItemId);
+            }
+            CartItem item = itemOpt.get();
+            if (!item.getUserId().equals(userId)) {
+                throw new com.rohith.rohithmart.exception.ForbiddenException("You are not authorized to remove this cart item");
+            }
+
             cartItemDAO.delete(cartItemId);
         } catch (SQLException e) {
             logger.error("Error removing cart item", e);
             throw new AppException("Failed to remove item from cart", e, 500);
+        }
+    }
+
+    @Override
+    public void clearCart(Long userId) throws AppException {
+        ValidationUtil.validateId(userId, "userId");
+        try {
+            cartItemDAO.clearCart(userId);
+        } catch (SQLException e) {
+            logger.error("Error clearing cart for user {}", userId, e);
+            throw new AppException("Failed to clear cart", e, 500);
         }
     }
 

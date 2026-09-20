@@ -69,6 +69,20 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
+    public boolean update(User user) throws SQLException {
+        String sql = "UPDATE users SET name = ?, email = ?, password_hash = ?, role = ? WHERE id = ?";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, user.getName());
+            ps.setString(2, user.getEmail());
+            ps.setString(3, user.getPasswordHash());
+            ps.setString(4, user.getRole().name());
+            ps.setLong(5, user.getId());
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    @Override
     public List<User> findAll() throws SQLException {
         List<User> list = new ArrayList<>();
         String sql = "SELECT id, name, email, password_hash, role, created_at FROM users ORDER BY id ASC";

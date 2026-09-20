@@ -111,12 +111,43 @@ public class OrderDAOImpl implements OrderDAO {
     }
 
     @Override
+    public List<Order> findOrdersBySellerId(Long sellerId) throws SQLException {
+        List<Order> list = new ArrayList<>();
+        String sql = "SELECT DISTINCT o.id, o.buyer_id, o.status, o.total_amount, o.created_at "
+                + "FROM orders o "
+                + "JOIN order_items oi ON o.id = oi.order_id "
+                + "JOIN products p ON oi.product_id = p.id "
+                + "WHERE p.seller_id = ? "
+                + "ORDER BY o.created_at DESC";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, sellerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapOrderRow(rs));
+                }
+            }
+        }
+        return list;
+    }
+
+    @Override
     public boolean updateStatus(Long orderId, OrderStatus status) throws SQLException {
         String sql = "UPDATE orders SET status = ? WHERE id = ?";
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, status.name());
             ps.setLong(2, orderId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean cancelOrder(Long orderId) throws SQLException {
+        String sql = "UPDATE orders SET status = 'CANCELLED' WHERE id = ? AND status IN ('PENDING', 'CONFIRMED')";
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, orderId);
             return ps.executeUpdate() > 0;
         }
     }

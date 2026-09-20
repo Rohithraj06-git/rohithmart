@@ -62,6 +62,15 @@ public interface OrderDAO {
     List<Order> findByBuyerId(Long buyerId) throws SQLException;
 
     /**
+     * Retrieves all orders containing items listed by a specific seller.
+     *
+     * @param sellerId seller's user ID
+     * @return list of orders
+     * @throws SQLException on database failure
+     */
+    List<Order> findOrdersBySellerId(Long sellerId) throws SQLException;
+
+    /**
      * Updates the status of an order.
      *
      * @param orderId order ID
@@ -70,6 +79,15 @@ public interface OrderDAO {
      * @throws SQLException on database failure
      */
     boolean updateStatus(Long orderId, OrderStatus status) throws SQLException;
+
+    /**
+     * Cancels an order if it is in an allowed cancellable state (PENDING or CONFIRMED).
+     *
+     * @param orderId order ID
+     * @return true if cancelled successfully, false otherwise
+     * @throws SQLException on database failure
+     */
+    boolean cancelOrder(Long orderId) throws SQLException;
 
     /**
      * Retrieves all platform orders for administrator oversight.

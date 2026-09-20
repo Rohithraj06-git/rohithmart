@@ -9,6 +9,7 @@ public class DAOFactory {
     private static final UserDAO USER_DAO = new UserDAOImpl();
     private static final ProductDAO PRODUCT_DAO = new ProductDAOImpl();
     private static final OrderDAO ORDER_DAO = new OrderDAOImpl();
+    private static final OrderItemDAO ORDER_ITEM_DAO = new OrderItemDAOImpl();
     private static final CartItemDAO CART_ITEM_DAO = new CartItemDAOImpl();
     private static final ReviewDAO REVIEW_DAO = new ReviewDAOImpl();
 
@@ -25,6 +26,10 @@ public class DAOFactory {
 
     public static OrderDAO getOrderDAO() {
         return ORDER_DAO;
+    }
+
+    public static OrderItemDAO getOrderItemDAO() {
+        return ORDER_ITEM_DAO;
     }
 
     public static CartItemDAO getCartItemDAO() {

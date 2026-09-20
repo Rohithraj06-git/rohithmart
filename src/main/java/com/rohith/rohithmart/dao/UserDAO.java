@@ -39,6 +39,15 @@ public interface UserDAO {
     User create(User user) throws SQLException;
 
     /**
+     * Updates an existing user's profile and credentials.
+     *
+     * @param user user entity with updated information
+     * @return true if updated successfully, false otherwise
+     * @throws SQLException on database failure
+     */
+    boolean update(User user) throws SQLException;
+
+    /**
      * Retrieves all registered users in the system.
      *
      * @return list of all users

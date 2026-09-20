@@ -16,6 +16,7 @@ import com.rohith.rohithmart.model.OrderItem;
 import com.rohith.rohithmart.model.OrderStatus;
 import com.rohith.rohithmart.model.Product;
 import com.rohith.rohithmart.util.DatabaseUtil;
+import com.rohith.rohithmart.util.ValidationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -181,9 +182,44 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void updateOrderStatus(Long orderId, OrderStatus newStatus) throws AppException {
+    public List<OrderDTO> getSellerOrders(Long sellerId) throws AppException {
+        ValidationUtil.validateId(sellerId, "sellerId");
         try {
+            List<Order> list = orderDAO.findOrdersBySellerId(sellerId);
+            List<OrderDTO> dtos = new ArrayList<>(list.size());
+            for (Order o : list) {
+                dtos.add(buildOrderDTO(o));
+            }
+            return dtos;
+        } catch (SQLException e) {
+            logger.error("Error fetching seller orders for seller ID {}", sellerId, e);
+            throw new AppException("Failed to load seller orders", e, 500);
+        }
+    }
+
+    @Override
+    public void updateOrderStatus(Long orderId, OrderStatus newStatus) throws AppException {
+        ValidationUtil.validateId(orderId, "orderId");
+        ValidationUtil.validateNotNull(newStatus, "newStatus");
+
+        try {
+            Optional<Order> opt = orderDAO.findById(orderId);
+            if (opt.isEmpty()) {
+                throw new ResourceNotFoundException("Order not found with ID: " + orderId);
+            }
+            Order current = opt.get();
+            if (current.getStatus() == OrderStatus.DELIVERED) {
+                throw new com.rohith.rohithmart.exception.OrderException("Cannot change status of a delivered order");
+            }
+            if (current.getStatus() == OrderStatus.CANCELLED) {
+                throw new com.rohith.rohithmart.exception.OrderException("Cannot change status of a cancelled order");
+            }
+            if (current.getStatus() == newStatus) {
+                return;
+            }
+
             orderDAO.updateStatus(orderId, newStatus);
+            logger.info("Order ID {} status updated from {} to {}", orderId, current.getStatus(), newStatus);
         } catch (SQLException e) {
             logger.error("Failed to update status for order ID {}", orderId, e);
             throw new AppException("Status update failed", e, 500);
@@ -192,19 +228,27 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void cancelOrder(Long orderId, Long userId) throws AppException {
+        ValidationUtil.validateId(orderId, "orderId");
+        ValidationUtil.validateId(userId, "userId");
+
         try {
             Optional<Order> opt = orderDAO.findById(orderId);
             if (opt.isEmpty()) {
-                throw new ResourceNotFoundException("Order not found");
+                throw new ResourceNotFoundException("Order not found with ID: " + orderId);
             }
             Order o = opt.get();
             if (!o.getBuyerId().equals(userId)) {
                 throw new ForbiddenException("You cannot cancel another user's order");
             }
-            if (o.getStatus() != OrderStatus.PENDING) {
-                throw new ValidationException("Only pending orders may be cancelled");
+            if (o.getStatus() == OrderStatus.SHIPPED || o.getStatus() == OrderStatus.DELIVERED) {
+                throw new com.rohith.rohithmart.exception.OrderException("Cannot cancel an order that has already been " + o.getStatus().name().toLowerCase());
             }
-            orderDAO.updateStatus(orderId, OrderStatus.CANCELLED);
+            if (o.getStatus() == OrderStatus.CANCELLED) {
+                return;
+            }
+
+            orderDAO.cancelOrder(orderId);
+            logger.info("Order ID {} cancelled by buyer ID {}", orderId, userId);
         } catch (SQLException e) {
             logger.error("Failed to cancel order ID {}", orderId, e);
             throw new AppException("Cancellation failed", e, 500);

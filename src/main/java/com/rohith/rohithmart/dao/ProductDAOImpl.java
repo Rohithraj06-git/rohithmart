@@ -80,6 +80,135 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
     @Override
+    public List<Product> findByCategory(String category) throws SQLException {
+        return findByCategory(category, 100, 0);
+    }
+
+    @Override
+    public List<Product> findByCategory(String category, int limit, int offset) throws SQLException {
+        return search(category, null, null, limit, offset);
+    }
+
+    @Override
+    public List<Product> findWithFilters(com.rohith.rohithmart.dto.ProductFilter filter) throws SQLException {
+        if (filter == null) {
+            return search(null, null, null, 20, 0);
+        }
+
+        StringBuilder sql = new StringBuilder("SELECT id, seller_id, name, description, price, stock_qty, category, image_url, created_at FROM products WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
+
+        if (filter.getCategory() != null && !filter.getCategory().trim().isEmpty()) {
+            sql.append("AND category = ? ");
+            params.add(filter.getCategory().trim());
+        }
+
+        if (filter.getKeyword() != null && !filter.getKeyword().trim().isEmpty()) {
+            sql.append("AND (LOWER(name) LIKE ? OR LOWER(description) LIKE ?) ");
+            String term = "%" + filter.getKeyword().trim().toLowerCase() + "%";
+            params.add(term);
+            params.add(term);
+        }
+
+        if (filter.getMinPrice() != null) {
+            sql.append("AND price >= ? ");
+            params.add(filter.getMinPrice());
+        }
+
+        if (filter.getMaxPrice() != null) {
+            sql.append("AND price <= ? ");
+            params.add(filter.getMaxPrice());
+        }
+
+        if (Boolean.TRUE.equals(filter.getInStockOnly())) {
+            sql.append("AND stock_qty > 0 ");
+        }
+
+        if (filter.getSellerId() != null && filter.getSellerId() > 0) {
+            sql.append("AND seller_id = ? ");
+            params.add(filter.getSellerId());
+        }
+
+        String sortBy = filter.getSortBy();
+        if ("price_asc".equalsIgnoreCase(sortBy)) {
+            sql.append("ORDER BY price ASC ");
+        } else if ("price_desc".equalsIgnoreCase(sortBy)) {
+            sql.append("ORDER BY price DESC ");
+        } else if ("name_asc".equalsIgnoreCase(sortBy)) {
+            sql.append("ORDER BY name ASC ");
+        } else if ("name_desc".equalsIgnoreCase(sortBy)) {
+            sql.append("ORDER BY name DESC ");
+        } else {
+            sql.append("ORDER BY created_at DESC ");
+        }
+
+        sql.append("LIMIT ? OFFSET ?");
+        params.add(filter.getSize());
+        params.add(filter.getOffset());
+
+        List<Product> list = new ArrayList<>();
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
+            }
+        }
+        return list;
+    }
+
+    @Override
+    public int countFiltered(com.rohith.rohithmart.dto.ProductFilter filter) throws SQLException {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM products WHERE 1=1 ");
+        List<Object> params = new ArrayList<>();
+
+        if (filter != null) {
+            if (filter.getCategory() != null && !filter.getCategory().trim().isEmpty()) {
+                sql.append("AND category = ? ");
+                params.add(filter.getCategory().trim());
+            }
+            if (filter.getKeyword() != null && !filter.getKeyword().trim().isEmpty()) {
+                sql.append("AND (LOWER(name) LIKE ? OR LOWER(description) LIKE ?) ");
+                String term = "%" + filter.getKeyword().trim().toLowerCase() + "%";
+                params.add(term);
+                params.add(term);
+            }
+            if (filter.getMinPrice() != null) {
+                sql.append("AND price >= ? ");
+                params.add(filter.getMinPrice());
+            }
+            if (filter.getMaxPrice() != null) {
+                sql.append("AND price <= ? ");
+                params.add(filter.getMaxPrice());
+            }
+            if (Boolean.TRUE.equals(filter.getInStockOnly())) {
+                sql.append("AND stock_qty > 0 ");
+            }
+            if (filter.getSellerId() != null && filter.getSellerId() > 0) {
+                sql.append("AND seller_id = ? ");
+                params.add(filter.getSellerId());
+            }
+        }
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        return 0;
+    }
+
+    @Override
     public List<Product> findBySellerId(Long sellerId) throws SQLException {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT id, seller_id, name, description, price, stock_qty, category, image_url, created_at "

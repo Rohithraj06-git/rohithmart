@@ -30,4 +30,23 @@ public interface ReviewService {
      * @throws AppException if validation fails
      */
     ReviewDTO addReview(Long productId, Long userId, int rating, String comment) throws AppException;
+
+    /**
+     * Calculates the average star rating for a product.
+     *
+     * @param productId product ID
+     * @return average star rating
+     * @throws AppException on failure
+     */
+    double getAverageRating(Long productId) throws AppException;
+
+    /**
+     * Checks if a user has already reviewed a given product.
+     *
+     * @param userId user ID
+     * @param productId product ID
+     * @return true if user has reviewed product, false otherwise
+     * @throws AppException on failure
+     */
+    boolean hasUserReviewed(Long userId, Long productId) throws AppException;
 }
