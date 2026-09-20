@@ -1,0 +1,48 @@
+@startuml D2_UseCase_Diagram
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Guest / Visitor" as Guest
+actor "Buyer" as Buyer
+actor "Seller" as Seller
+actor "Administrator" as Admin
+
+rectangle "RohithMart Marketplace System" {
+  usecase "Register & Login (F1)" as UC_Auth
+  usecase "Browse & Search Products (F3)" as UC_Browse
+  usecase "Manage Cart (F4)" as UC_Cart
+  usecase "Checkout & Mock Payment (F5)" as UC_Checkout
+  usecase "View Order History & Cancel (F6)" as UC_OrderHistory
+  usecase "Write Product Review & Rating (F8)" as UC_Review
+  usecase "Ask AI Chat Assistant (O4)" as UC_Chat
+  
+  usecase "Create, Edit & Delete Listings (F2)" as UC_ManageProducts
+  usecase "View Incoming Orders & Update Status (F6, O2)" as UC_SellerOrders
+  usecase "Seller Sales Analytics (O3)" as UC_SellerDashboard
+  
+  usecase "View All Users & Orders (F7)" as UC_AdminUsersOrders
+  usecase "Moderate / Remove Listings (F7)" as UC_AdminModerate
+  usecase "Monitor System Health (S18)" as UC_AdminHealth
+}
+
+Guest --> UC_Auth
+Guest --> UC_Browse
+Guest --> UC_Chat
+
+Buyer --|> Guest
+Buyer --> UC_Cart
+Buyer --> UC_Checkout
+Buyer --> UC_OrderHistory
+Buyer --> UC_Review
+
+Seller --|> Guest
+Seller --> UC_ManageProducts
+Seller --> UC_SellerOrders
+Seller --> UC_SellerDashboard
+
+Admin --|> Guest
+Admin --> UC_AdminUsersOrders
+Admin --> UC_AdminModerate
+Admin --> UC_AdminHealth
+
+@enduml

@@ -1,0 +1,53 @@
+@startuml D3_Sequence_Diagram
+autonumber
+skinparam responseMessageBelowArrow true
+
+actor "Buyer" as User
+boundary "Browser (JSP/JS)" as Browser
+control "AuthFilter" as Filter
+control "CheckoutServlet" as Servlet
+participant "OrderService" as Service
+participant "OrderDAO & ProductDAO" as DAO
+database "H2 Database (HikariCP)" as DB
+
+User -> Browser : Clicks "Confirm & Place Order"
+Browser -> Filter : HTTP POST /checkout/place (Session Cookie)
+activate Filter
+
+Filter -> Filter : Validate active session & role (BUYER)
+Filter -> Servlet : Forward authenticated request
+activate Servlet
+
+Servlet -> Service : checkout(buyerId)
+activate Service
+
+Service -> DAO : getCartItems(buyerId) & validate inventory
+activate DAO
+DAO -> DB : SELECT * FROM cart_items, products
+DB --> DAO : Cart & product data
+DAO --> Service : List<CartItemDTO>
+
+Service -> DB : conn.setAutoCommit(false) [Begin Transaction]
+
+Service -> DAO : createOrder(conn, order)
+DAO -> DB : INSERT INTO orders VALUES (...)
+DB --> DAO : Generated Order ID
+
+Service -> DAO : createOrderItem(...) & deductStock(...)
+DAO -> DB : INSERT INTO order_items / UPDATE products stock
+DB --> DAO : Success
+
+Service -> DAO : clearCart(conn, buyerId)
+DAO -> DB : DELETE FROM cart_items WHERE user_id = ?
+DB --> DAO : Cart cleared
+
+Service -> DB : conn.commit() [Commit Transaction]
+Service --> Servlet : OrderDTO (Order Details)
+deactivate Service
+
+Servlet --> Browser : HTTP 302 Redirect to /buyer/orders
+deactivate Servlet
+deactivate Filter
+
+Browser -> User : Render Order Confirmation & History
+@enduml

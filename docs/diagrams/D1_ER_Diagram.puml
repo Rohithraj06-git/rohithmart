@@ -1,0 +1,75 @@
+@startuml D1_ER_Diagram
+!theme plain
+skinparam linetype ortho
+
+entity "users" as users {
+  * id : BIGINT <<PK, auto>>
+  --
+  * name : VARCHAR(100)
+  * email : VARCHAR(150) <<UNIQUE>>
+  * password_hash : VARCHAR(255)
+  * role : ENUM('BUYER','SELLER','ADMIN')
+  * created_at : TIMESTAMP
+}
+
+entity "products" as products {
+  * id : BIGINT <<PK, auto>>
+  --
+  * seller_id : BIGINT <<FK>>
+  * name : VARCHAR(200)
+  description : CLOB
+  * price : DECIMAL(10,2)
+  * stock_qty : INT
+  * category : VARCHAR(100)
+  image_url : VARCHAR(500)
+  * created_at : TIMESTAMP
+}
+
+entity "orders" as orders {
+  * id : BIGINT <<PK, auto>>
+  --
+  * buyer_id : BIGINT <<FK>>
+  * status : ENUM('PENDING','CONFIRMED','SHIPPED','DELIVERED','CANCELLED')
+  * total_amount : DECIMAL(10,2)
+  * created_at : TIMESTAMP
+}
+
+entity "order_items" as order_items {
+  * id : BIGINT <<PK, auto>>
+  --
+  * order_id : BIGINT <<FK>>
+  * product_id : BIGINT <<FK>>
+  * quantity : INT
+  * unit_price : DECIMAL(10,2)
+  * created_at : TIMESTAMP
+}
+
+entity "cart_items" as cart_items {
+  * id : BIGINT <<PK, auto>>
+  --
+  * user_id : BIGINT <<FK>>
+  * product_id : BIGINT <<FK>>
+  * quantity : INT
+  * created_at : TIMESTAMP
+}
+
+entity "reviews" as reviews {
+  * id : BIGINT <<PK, auto>>
+  --
+  * product_id : BIGINT <<FK>>
+  * user_id : BIGINT <<FK>>
+  * rating : INT
+  comment : CLOB
+  * created_at : TIMESTAMP
+}
+
+users ||--o{ products : "lists"
+users ||--o{ orders : "places"
+users ||--o{ cart_items : "holds"
+users ||--o{ reviews : "writes"
+orders ||--|{ order_items : "contains"
+products ||--o{ order_items : "included in"
+products ||--o{ cart_items : "selected in"
+products ||--o{ reviews : "reviewed in"
+
+@enduml

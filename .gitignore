@@ -1,0 +1,35 @@
+# Compiled class files
+target/
+*.class
+
+# Log files
+*.log
+logs/
+
+# Secrets and environment variables
+.env
+config.properties
+*.local.properties
+
+# Database files
+*.db
+*.mv.db
+*.trace.db
+db_data/
+/data/
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.vscode/
+bin/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+desktop.ini
