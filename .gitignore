@@ -33,3 +33,8 @@ bin/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Local binaries & tunnel configs
+cloudflared.exe
+config.yml
+

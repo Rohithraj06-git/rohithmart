@@ -4,6 +4,8 @@ import com.rohith.rohithmart.dto.ApiResponse;
 import com.rohith.rohithmart.model.Role;
 import com.rohith.rohithmart.model.User;
 import com.rohith.rohithmart.util.JsonUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -18,8 +20,23 @@ import java.io.IOException;
 
 /**
  * Enforces session-based authentication and role-based access control (RBAC).
+ *
+ * RBAC Rules:
+ * - Unauthenticated:
+ *   - /api/* -> 401 Unauthorized JSON envelope
+ *   - Web    -> redirect to /auth/login
+ * - BUYER:
+ *   - Can access buyer views, cart, orders, reviews, profile
+ *   - Denied access (403) to /seller/*, /api/seller/*, /admin/*, /api/admin/*
+ * - SELLER:
+ *   - Can access seller views, manage products, view seller orders
+ *   - Denied access (403) to /admin/*, /api/admin/*
+ * - ADMIN:
+ *   - Full platform access across buyer, seller, and admin areas
  */
 public class AuthFilter implements Filter {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthFilter.class);
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -42,6 +59,7 @@ public class AuthFilter implements Filter {
 
         // Check if user is logged in
         if (user == null) {
+            logger.warn("Security audit: Unauthenticated access attempt to [{}] from IP [{}]", path, req.getRemoteAddr());
             if (isApi) {
                 sendJsonError(res, HttpServletResponse.SC_UNAUTHORIZED, "UNAUTHORIZED", "Authentication required");
             } else {
@@ -50,21 +68,28 @@ public class AuthFilter implements Filter {
             return;
         }
 
-        // Role-based authorization
-        if (path.startsWith("/seller") && user.getRole() != Role.SELLER && user.getRole() != Role.ADMIN) {
-            handleForbidden(res, isApi, contextPath);
+        // Role-based authorization for seller areas
+        if ((path.startsWith("/seller") || path.startsWith("/api/seller"))
+                && user.getRole() != Role.SELLER && user.getRole() != Role.ADMIN) {
+            logger.warn("Security audit: Forbidden role access: User ID [{}] with Role [{}] attempted [{}] from IP [{}]",
+                    user.getId(), user.getRole(), path, req.getRemoteAddr());
+            handleForbidden(res, isApi);
             return;
         }
 
-        if (path.startsWith("/admin") && user.getRole() != Role.ADMIN) {
-            handleForbidden(res, isApi, contextPath);
+        // Role-based authorization for admin areas
+        if ((path.startsWith("/admin") || path.startsWith("/api/admin"))
+                && user.getRole() != Role.ADMIN) {
+            logger.warn("Security audit: Forbidden role access: User ID [{}] with Role [{}] attempted [{}] from IP [{}]",
+                    user.getId(), user.getRole(), path, req.getRemoteAddr());
+            handleForbidden(res, isApi);
             return;
         }
 
         chain.doFilter(request, response);
     }
 
-    private void handleForbidden(HttpServletResponse res, boolean isApi, String contextPath) throws IOException {
+    private void handleForbidden(HttpServletResponse res, boolean isApi) throws IOException {
         if (isApi) {
             sendJsonError(res, HttpServletResponse.SC_FORBIDDEN, "FORBIDDEN", "Insufficient role permissions");
         } else {
