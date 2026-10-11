@@ -6,6 +6,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="context-path" content="${pageContext.request.contextPath}">
+    <meta name="csrf-token" content="${_csrf_token}">
     <title><c:out value="${pageTitle != null ? pageTitle : 'RohithMart | Multi-Seller Marketplace'}"/></title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/main.css">
     <c:if test="${not empty extraCss}">

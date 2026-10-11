@@ -17,6 +17,8 @@ public class ProductResponse {
     private String category;
     private String imageUrl;
     private Timestamp createdAt;
+    private Double averageRating = 0.0;
+    private Integer reviewCount = 0;
 
     public ProductResponse() {
     }
@@ -44,6 +46,8 @@ public class ProductResponse {
         this.category = builder.category;
         this.imageUrl = builder.imageUrl;
         this.createdAt = builder.createdAt;
+        this.averageRating = builder.averageRating != null ? builder.averageRating : 0.0;
+        this.reviewCount = builder.reviewCount != null ? builder.reviewCount : 0;
     }
 
     public static Builder builder() {
@@ -122,6 +126,22 @@ public class ProductResponse {
         this.createdAt = createdAt;
     }
 
+    public Double getAverageRating() {
+        return averageRating != null ? averageRating : 0.0;
+    }
+
+    public void setAverageRating(Double averageRating) {
+        this.averageRating = averageRating;
+    }
+
+    public Integer getReviewCount() {
+        return reviewCount != null ? reviewCount : 0;
+    }
+
+    public void setReviewCount(Integer reviewCount) {
+        this.reviewCount = reviewCount;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -145,6 +165,8 @@ public class ProductResponse {
                 ", stockQty=" + stockQty +
                 ", category='" + category + '\'' +
                 ", createdAt=" + createdAt +
+                ", averageRating=" + averageRating +
+                ", reviewCount=" + reviewCount +
                 '}';
     }
 
@@ -158,6 +180,8 @@ public class ProductResponse {
         private String category;
         private String imageUrl;
         private Timestamp createdAt;
+        private Double averageRating = 0.0;
+        private Integer reviewCount = 0;
 
         public Builder id(Long id) {
             this.id = id;
@@ -201,6 +225,16 @@ public class ProductResponse {
 
         public Builder createdAt(Timestamp createdAt) {
             this.createdAt = createdAt;
+            return this;
+        }
+
+        public Builder averageRating(Double averageRating) {
+            this.averageRating = averageRating;
+            return this;
+        }
+
+        public Builder reviewCount(Integer reviewCount) {
+            this.reviewCount = reviewCount;
             return this;
         }
 

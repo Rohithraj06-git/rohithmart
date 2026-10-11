@@ -12,15 +12,17 @@
         <p class="auth-subtitle">Join RohithMart as a Buyer or Seller</p>
 
         <c:if test="${not empty errorMessage}">
-            <div class="alert alert-danger">
+            <div class="alert alert-danger" role="alert">
                 <c:out value="${errorMessage}"/>
             </div>
         </c:if>
 
-        <form action="${pageContext.request.contextPath}/auth/register" method="post" class="auth-form">
+        <form action="${pageContext.request.contextPath}/auth/register" method="post" class="auth-form" id="register-form">
+            <input type="hidden" name="_csrf" value="${_csrf_token}">
+
             <div class="form-group">
                 <label for="name">Full Name</label>
-                <input type="text" id="name" name="name" value="<c:out value="${param.name}"/>" required placeholder="John Doe">
+                <input type="text" id="name" name="name" value="<c:out value="${param.name}"/>" required placeholder="e.g. Alice Smith">
             </div>
 
             <div class="form-group">
@@ -30,18 +32,21 @@
 
             <div class="form-group">
                 <label for="password">Password (minimum 8 characters)</label>
-                <input type="password" id="password" name="password" required minlength="8" placeholder="Create a strong password">
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" required minlength="8" placeholder="Create a strong password">
+                    <button type="button" class="password-toggle-btn" data-target="password" aria-label="Toggle password visibility">👁️</button>
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="role">Account Type</label>
                 <select id="role" name="role" required>
-                    <option value="BUYER" ${param.role == 'BUYER' ? 'selected' : ''}>Buyer (I want to shop)</option>
-                    <option value="SELLER" ${param.role == 'SELLER' ? 'selected' : ''}>Seller (I want to sell products)</option>
+                    <option value="BUYER" ${param.role == 'BUYER' || empty param.role ? 'selected' : ''}>Buyer (I want to discover and purchase goods)</option>
+                    <option value="SELLER" ${param.role == 'SELLER' ? 'selected' : ''}>Seller (I want to list and sell products)</option>
                 </select>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-block">Register</button>
+            <button type="submit" class="btn btn-primary btn-block">Complete Registration</button>
         </form>
 
         <div class="auth-footer">

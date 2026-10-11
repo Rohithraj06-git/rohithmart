@@ -15,7 +15,10 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -25,13 +28,19 @@ public class ProductServiceImpl implements ProductService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductDAO productDAO;
+    private final com.rohith.rohithmart.dao.ReviewDAO reviewDAO;
 
     public ProductServiceImpl() {
-        this(DAOFactory.getProductDAO());
+        this(DAOFactory.getProductDAO(), DAOFactory.getReviewDAO());
     }
 
     public ProductServiceImpl(ProductDAO productDAO) {
+        this(productDAO, DAOFactory.getReviewDAO());
+    }
+
+    public ProductServiceImpl(ProductDAO productDAO, com.rohith.rohithmart.dao.ReviewDAO reviewDAO) {
         this.productDAO = productDAO;
+        this.reviewDAO = reviewDAO;
     }
 
     @Override
@@ -60,11 +69,7 @@ public class ProductServiceImpl implements ProductService {
 
         try {
             List<Product> list = productDAO.search(category, keyword, sortBy, size, offset);
-            List<ProductDTO> dtos = new ArrayList<>(list.size());
-            for (Product p : list) {
-                dtos.add(toDTO(p));
-            }
-            return dtos;
+            return toDTOList(list);
         } catch (SQLException e) {
             logger.error("Error searching products", e);
             throw new AppException("Failed to retrieve products", e, 500);
@@ -78,10 +83,7 @@ public class ProductServiceImpl implements ProductService {
             List<Product> list = productDAO.findWithFilters(safeFilter);
             int totalResults = productDAO.countFiltered(safeFilter);
 
-            List<ProductDTO> dtos = new ArrayList<>(list.size());
-            for (Product p : list) {
-                dtos.add(toDTO(p));
-            }
+            List<ProductDTO> dtos = toDTOList(list);
             return com.rohith.rohithmart.dto.PagedResponse.of(dtos, safeFilter.getPage(), safeFilter.getSize(), totalResults);
         } catch (SQLException e) {
             logger.error("Error searching products with filters", e);
@@ -94,11 +96,7 @@ public class ProductServiceImpl implements ProductService {
         ValidationUtil.validateNotBlank(category, "category");
         try {
             List<Product> list = productDAO.findByCategory(category);
-            List<ProductDTO> dtos = new ArrayList<>(list.size());
-            for (Product p : list) {
-                dtos.add(toDTO(p));
-            }
-            return dtos;
+            return toDTOList(list);
         } catch (SQLException e) {
             logger.error("Error retrieving products by category {}", category, e);
             throw new AppException("Failed to load products by category", e, 500);
@@ -113,11 +111,7 @@ public class ProductServiceImpl implements ProductService {
 
         try {
             List<Product> list = productDAO.findBySellerId(sellerId);
-            List<ProductDTO> dtos = new ArrayList<>(list.size());
-            for (Product p : list) {
-                dtos.add(toDTO(p));
-            }
-            return dtos;
+            return toDTOList(list);
         } catch (SQLException e) {
             logger.error("Error retrieving seller products for seller {}", sellerId, e);
             throw new AppException("Failed to load seller products", e, 500);
@@ -150,7 +144,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductDTO updateProduct(ProductDTO dto, Long sellerId) throws AppException {
+    public ProductDTO updateProduct(ProductDTO dto, Long userId, boolean isAdmin) throws AppException {
         if (dto == null || dto.getId() == null) {
             throw new ValidationException("Product ID is required for update");
         }
@@ -162,7 +156,7 @@ public class ProductServiceImpl implements ProductService {
                 throw new ResourceNotFoundException("Product not found");
             }
             Product existing = opt.get();
-            if (!existing.getSellerId().equals(sellerId)) {
+            if (!isAdmin && !existing.getSellerId().equals(userId)) {
                 throw new ForbiddenException("You are not authorized to update this listing");
             }
 
@@ -179,6 +173,11 @@ public class ProductServiceImpl implements ProductService {
             logger.error("Database error updating product ID {}", dto.getId(), e);
             throw new AppException("Failed to update product listing", e, 500);
         }
+    }
+
+    @Override
+    public ProductDTO updateProduct(ProductDTO dto, Long sellerId) throws AppException {
+        return updateProduct(dto, sellerId, false);
     }
 
     @Override
@@ -226,7 +225,45 @@ public class ProductServiceImpl implements ProductService {
         ValidationUtil.validateDescription(dto.getDescription());
     }
 
+    private List<ProductDTO> toDTOList(List<Product> products) {
+        if (products == null || products.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Long> pids = products.stream().map(Product::getId).filter(Objects::nonNull).toList();
+        Map<Long, double[]> statsMap = Collections.emptyMap();
+        if (reviewDAO != null && !pids.isEmpty()) {
+            try {
+                statsMap = reviewDAO.getRatingStatsForProducts(pids);
+            } catch (Exception e) {
+                logger.warn("Could not batch load ratings for products", e);
+            }
+        }
+
+        List<ProductDTO> dtos = new ArrayList<>(products.size());
+        for (Product p : products) {
+            double[] stats = statsMap.get(p.getId());
+            double avg = stats != null ? stats[0] : 0.0;
+            int count = stats != null ? (int) stats[1] : 0;
+            dtos.add(toDTO(p, avg, count));
+        }
+        return dtos;
+    }
+
     private ProductDTO toDTO(Product p) {
+        double avgRating = 0.0;
+        int reviewCount = 0;
+        if (reviewDAO != null && p.getId() != null) {
+            try {
+                avgRating = reviewDAO.calculateAverageRating(p.getId());
+                reviewCount = reviewDAO.countByProductId(p.getId());
+            } catch (Exception e) {
+                logger.warn("Could not calculate ratings for product {}", p.getId(), e);
+            }
+        }
+        return toDTO(p, avgRating, reviewCount);
+    }
+
+    private ProductDTO toDTO(Product p, double avgRating, int reviewCount) {
         return ProductDTO.builder()
                 .id(p.getId())
                 .sellerId(p.getSellerId())
@@ -237,6 +274,8 @@ public class ProductServiceImpl implements ProductService {
                 .category(p.getCategory())
                 .imageUrl(p.getImageUrl())
                 .createdAt(p.getCreatedAt())
+                .averageRating(avgRating)
+                .reviewCount(reviewCount)
                 .build();
     }
 }

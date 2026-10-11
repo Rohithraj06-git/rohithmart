@@ -124,6 +124,11 @@ public class ProductDAOImpl implements ProductDAO {
             sql.append("AND stock_qty > 0 ");
         }
 
+        if (filter.getMinRating() != null && filter.getMinRating() > 0) {
+            sql.append("AND id IN (SELECT product_id FROM reviews GROUP BY product_id HAVING AVG(CAST(rating AS DOUBLE)) >= ?) ");
+            params.add(filter.getMinRating());
+        }
+
         if (filter.getSellerId() != null && filter.getSellerId() > 0) {
             sql.append("AND seller_id = ? ");
             params.add(filter.getSellerId());
@@ -187,6 +192,10 @@ public class ProductDAOImpl implements ProductDAO {
             }
             if (Boolean.TRUE.equals(filter.getInStockOnly())) {
                 sql.append("AND stock_qty > 0 ");
+            }
+            if (filter.getMinRating() != null && filter.getMinRating() > 0) {
+                sql.append("AND id IN (SELECT product_id FROM reviews GROUP BY product_id HAVING AVG(CAST(rating AS DOUBLE)) >= ?) ");
+                params.add(filter.getMinRating());
             }
             if (filter.getSellerId() != null && filter.getSellerId() > 0) {
                 sql.append("AND seller_id = ? ");

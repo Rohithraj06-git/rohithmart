@@ -59,9 +59,21 @@ public class CartServlet extends BaseServlet {
         try {
             if ("/add".equals(pathInfo)) {
                 Long productId = Long.parseLong(req.getParameter("productId"));
-                int quantity = Integer.parseInt(req.getParameter("quantity"));
+                String qParam = req.getParameter("quantity");
+                int quantity = (qParam != null && !qParam.isEmpty()) ? Integer.parseInt(qParam) : 1;
                 cartService.addToCart(user.getId(), productId, quantity);
+                
+                String buyNow = req.getParameter("buyNow");
+                if ("true".equalsIgnoreCase(buyNow) || "1".equals(buyNow)) {
+                    res.sendRedirect(req.getContextPath() + "/checkout");
+                    return;
+                }
                 session.setAttribute("flashSuccess", "Product added to cart!");
+            } else if ("/update".equals(pathInfo)) {
+                Long cartItemId = Long.parseLong(req.getParameter("cartItemId"));
+                int quantity = Integer.parseInt(req.getParameter("quantity"));
+                cartService.updateQuantity(user.getId(), cartItemId, quantity);
+                session.setAttribute("flashSuccess", "Cart updated successfully");
             } else if ("/remove".equals(pathInfo)) {
                 Long cartItemId = Long.parseLong(req.getParameter("cartItemId"));
                 cartService.removeFromCart(user.getId(), cartItemId);

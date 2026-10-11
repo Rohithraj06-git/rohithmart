@@ -16,7 +16,9 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -50,6 +52,7 @@ public class ReviewServiceImpl implements ReviewService {
         try {
             List<Review> list = reviewDAO.findByProductId(productId);
             List<ReviewDTO> dtos = new ArrayList<>(list.size());
+            Map<Long, String> userNameCache = new HashMap<>();
             for (Review r : list) {
                 ReviewDTO dto = new ReviewDTO();
                 dto.setId(r.getId());
@@ -59,8 +62,14 @@ public class ReviewServiceImpl implements ReviewService {
                 dto.setComment(r.getComment());
                 dto.setCreatedAt(r.getCreatedAt());
 
-                Optional<User> uOpt = userDAO.findById(r.getUserId());
-                dto.setUserName(uOpt.map(User::getName).orElse("Verified Buyer"));
+                String userName = userNameCache.computeIfAbsent(r.getUserId(), uid -> {
+                    try {
+                        return userDAO.findById(uid).map(User::getName).orElse("Verified Buyer");
+                    } catch (SQLException e) {
+                        return "Verified Buyer";
+                    }
+                });
+                dto.setUserName(userName);
                 dtos.add(dto);
             }
             return dtos;

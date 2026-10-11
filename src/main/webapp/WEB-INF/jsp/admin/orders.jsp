@@ -38,7 +38,7 @@
                             <td><fmt:formatDate value="${o.createdAt}" pattern="MMM dd, yyyy HH:mm"/></td>
                             <td>$<fmt:formatNumber value="${o.totalAmount}" minFractionDigits="2" maxFractionDigits="2"/></td>
                             <td>
-                                <span class="badge status-<c:out value="${o.status.toLowerCase()}"/>"><c:out value="${o.status}"/></span>
+                                <span class="badge status-<c:out value="${o.status.name().toLowerCase()}"/>"><c:out value="${o.status}"/></span>
                             </td>
                         </tr>
                     </c:forEach>

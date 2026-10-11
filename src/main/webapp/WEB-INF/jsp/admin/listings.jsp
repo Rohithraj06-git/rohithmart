@@ -42,9 +42,14 @@
                             <td>$<fmt:formatNumber value="${p.price}" minFractionDigits="2" maxFractionDigits="2"/></td>
                             <td><c:out value="${p.stockQty}"/></td>
                             <td>
-                                <form action="${pageContext.request.contextPath}/admin/listings/delete" method="post" onsubmit="return confirm('Moderate and remove this listing?');">
+                                <button type="button" class="btn btn-sm btn-danger btn-moderate-listing"
+                                        data-id="${p.id}"
+                                        data-name="<c:out value="${p.name}"/>">
+                                    Remove Listing
+                                </button>
+                                <form id="moderate-form-${p.id}" action="${pageContext.request.contextPath}/admin/listings/delete" method="post" style="display:none;">
+                                    <input type="hidden" name="_csrf" value="${_csrf_token}">
                                     <input type="hidden" name="id" value="${p.id}">
-                                    <button type="submit" class="btn btn-sm btn-danger">Remove Listing</button>
                                 </form>
                             </td>
                         </tr>
@@ -54,5 +59,25 @@
         </div>
     </div>
 </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn-moderate-listing').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var id = this.getAttribute('data-id');
+            var name = this.getAttribute('data-name');
+            RohithMart.Modal.confirm(
+                'Moderate Product Listing',
+                'Are you sure you want to remove the listing for "' + name + '"? This will permanently delete the item.',
+                function() {
+                    document.getElementById('moderate-form-' + id).submit();
+                },
+                'Remove Listing',
+                true
+            );
+        });
+    });
+});
+</script>
 
 <jsp:include page="../common/footer.jsp" />

@@ -75,3 +75,11 @@ INSERT INTO reviews (id, product_id, user_id, rating, comment, created_at) VALUE
 (1, 1, 4, 5, 'Outstanding tactile switches! Excellent build quality and responsive actuation for programming sessions.', TIMESTAMPADD('DAY', -5, CURRENT_TIMESTAMP)),
 (2, 2, 4, 4, 'Very comfortable grip that drastically lessened my wrist pain during extended shifts. Silent clicks are fantastic.', TIMESTAMPADD('DAY', -4, CURRENT_TIMESTAMP)),
 (3, 3, 5, 5, 'Noise cancellation is astonishingly good in noisy train commutes. Battery holds up beyond advertised expectations.', TIMESTAMPADD('DAY', -1, CURRENT_TIMESTAMP));
+
+-- 7. RESTART AUTO-INCREMENT SEQUENCES BEYOND SEED DATA
+ALTER TABLE users ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE products ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE orders ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE order_items ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE cart_items ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE reviews ALTER COLUMN id RESTART WITH 100;

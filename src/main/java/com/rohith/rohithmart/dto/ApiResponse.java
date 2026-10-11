@@ -20,7 +20,7 @@ public class ApiResponse<T> {
     private String errorCode;
     private Map<String, String> fieldErrors;
     private T data;
-    private ApiError error;
+    private transient ApiError error;
 
     public ApiResponse() {
     }

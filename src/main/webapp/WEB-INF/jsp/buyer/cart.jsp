@@ -9,60 +9,90 @@
 
 <main class="main-content">
     <div class="cart-container">
-        <h1>Shopping Cart</h1>
+        <h1 style="font-size: 2rem; color: var(--primary-color); margin-bottom: 2rem;">Shopping Cart</h1>
+
         <c:choose>
             <c:when test="${not empty cartItems}">
                 <div class="cart-layout">
+                    <!-- Left: Cart Items Table -->
                     <div class="cart-table-wrap">
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Product</th>
-                                    <th>Unit Price</th>
-                                    <th>Quantity</th>
+                                    <th>Item</th>
+                                    <th>Price</th>
+                                    <th style="width: 130px;">Quantity</th>
                                     <th>Subtotal</th>
-                                    <th>Actions</th>
+                                    <th style="width: 80px; text-align: center;">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <c:forEach var="item" items="${cartItems}">
                                     <tr>
                                         <td>
-                                            <a href="${pageContext.request.contextPath}/products/detail?id=${item.productId}">
-                                                <c:out value="${item.productName}"/>
-                                            </a>
+                                            <div style="display:flex;align-items:center;gap:1rem;">
+                                                <a href="${pageContext.request.contextPath}/products/detail?id=${item.productId}" style="font-weight:600;color:var(--text-primary);text-decoration:none;">
+                                                    <c:out value="${item.productName}"/>
+                                                </a>
+                                            </div>
                                         </td>
                                         <td>$<fmt:formatNumber value="${item.unitPrice}" minFractionDigits="2" maxFractionDigits="2"/></td>
                                         <td>
-                                            <input type="number" class="cart-qty-input" value="${item.quantity}" min="1" max="99" data-cart-item-id="${item.id}">
+                                            <div class="qty-stepper">
+                                                <button type="button" class="qty-minus" aria-label="Decrease quantity">&minus;</button>
+                                                <input type="number" class="cart-qty-input" value="${item.quantity}" min="1" max="99" data-cart-item-id="${item.id}" aria-label="Quantity">
+                                                <button type="button" class="qty-plus" aria-label="Increase quantity">&plus;</button>
+                                            </div>
                                         </td>
-                                        <td>$<fmt:formatNumber value="${item.subtotal}" minFractionDigits="2" maxFractionDigits="2"/></td>
-                                        <td>
-                                            <form action="${pageContext.request.contextPath}/cart/remove" method="post" style="display:inline;">
-                                                <input type="hidden" name="cartItemId" value="${item.id}">
-                                                <button type="submit" class="btn btn-sm btn-danger">Remove</button>
-                                            </form>
+                                        <td class="item-subtotal" style="font-weight:600;color:var(--primary-color);">
+                                            $<fmt:formatNumber value="${item.subtotal}" minFractionDigits="2" maxFractionDigits="2"/>
+                                        </td>
+                                        <td style="text-align:center;">
+                                            <button type="button" class="btn btn-sm btn-outline btn-remove-cart-item" data-cart-item-id="${item.id}" data-product-name="<c:out value="${item.productName}"/>" title="Remove item" aria-label="Remove item">
+                                                ✕
+                                            </button>
                                         </td>
                                     </tr>
                                 </c:forEach>
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Right: Order Summary -->
                     <div class="cart-summary-card">
-                        <h3>Order Summary</h3>
+                        <h3>Cart Summary</h3>
+                        <div class="summary-row">
+                            <span>Total Items</span>
+                            <span>${cartItems.size()}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Standard Shipping</span>
+                            <span style="color:var(--success-color);font-weight:600;">FREE</span>
+                        </div>
                         <div class="summary-row total">
-                            <span>Total</span>
+                            <span>Estimated Total</span>
                             <span class="total-amount">$<fmt:formatNumber value="${cartTotal}" minFractionDigits="2" maxFractionDigits="2"/></span>
                         </div>
-                        <a href="${pageContext.request.contextPath}/checkout" class="btn btn-primary btn-block">Proceed to Checkout</a>
+                        
+                        <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                            <a href="${pageContext.request.contextPath}/checkout" class="btn btn-primary btn-block btn-lg">
+                                Proceed to Checkout
+                            </a>
+                            <a href="${pageContext.request.contextPath}/products" class="btn btn-outline btn-block btn-sm">
+                                &larr; Continue Shopping
+                            </a>
+                        </div>
                     </div>
                 </div>
             </c:when>
             <c:otherwise>
                 <div class="empty-state">
-                    <h3>Your cart is empty</h3>
-                    <p>Discover products to add to your cart.</p>
-                    <a href="${pageContext.request.contextPath}/products" class="btn btn-primary">Start Shopping</a>
+                    <div class="empty-state-icon">🛒</div>
+                    <h3>Your cart is currently empty</h3>
+                    <p>Discover handpicked items and artisan collections from verified marketplace sellers.</p>
+                    <a href="${pageContext.request.contextPath}/products" class="btn btn-primary">
+                        Browse Products
+                    </a>
                 </div>
             </c:otherwise>
         </c:choose>

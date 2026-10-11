@@ -13,7 +13,6 @@ public final class JsonUtil {
 
     private static final Gson GSON = new GsonBuilder()
             .setDateFormat("yyyy-MM-dd HH:mm:ss")
-            .serializeNulls()
             .create();
 
     private JsonUtil() {

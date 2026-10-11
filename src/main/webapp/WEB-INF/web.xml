@@ -22,7 +22,17 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
-    <!-- Filter 2: Request Logging & MDC Tracking Filter -->
+    <!-- Filter 2: Security Response Headers Filter -->
+    <filter>
+        <filter-name>SecurityHeadersFilter</filter-name>
+        <filter-class>com.rohith.rohithmart.filter.SecurityHeadersFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>SecurityHeadersFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- Filter 3: Request Logging & MDC Tracking Filter -->
     <filter>
         <filter-name>LoggingFilter</filter-name>
         <filter-class>com.rohith.rohithmart.filter.LoggingFilter</filter-class>
@@ -32,7 +42,17 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
-    <!-- Filter 3: Authentication & Role-Based Access Control Filter -->
+    <!-- Filter 4: Cross-Site Request Forgery (CSRF) Protection Filter -->
+    <filter>
+        <filter-name>CsrfFilter</filter-name>
+        <filter-class>com.rohith.rohithmart.filter.CsrfFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>CsrfFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- Filter 5: Authentication & Role-Based Access Control Filter -->
     <filter>
         <filter-name>AuthFilter</filter-name>
         <filter-class>com.rohith.rohithmart.filter.AuthFilter</filter-class>
@@ -43,9 +63,31 @@
         <url-pattern>/seller/*</url-pattern>
         <url-pattern>/admin/*</url-pattern>
         <url-pattern>/checkout</url-pattern>
-        <url-pattern>/api/v1/cart/*</url-pattern>
-        <url-pattern>/api/v1/orders/*</url-pattern>
+        <url-pattern>/checkout/*</url-pattern>
+        <url-pattern>/cart</url-pattern>
+        <url-pattern>/cart/*</url-pattern>
+        <url-pattern>/orders/*</url-pattern>
+        <url-pattern>/api/cart/*</url-pattern>
+        <url-pattern>/api/orders/*</url-pattern>
+        <url-pattern>/api/seller/*</url-pattern>
+        <url-pattern>/api/admin/*</url-pattern>
     </filter-mapping>
+
+    <!-- H2 Database Web Console -->
+    <servlet>
+        <servlet-name>H2Console</servlet-name>
+        <servlet-class>org.h2.server.web.WebServlet</servlet-class>
+        <init-param>
+            <param-name>webAllowOthers</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>H2Console</servlet-name>
+        <url-pattern>/h2-console</url-pattern>
+        <url-pattern>/h2-console/*</url-pattern>
+    </servlet-mapping>
 
     <!-- Session Management Configuration -->
     <session-config>

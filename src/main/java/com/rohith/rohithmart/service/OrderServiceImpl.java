@@ -24,7 +24,9 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -170,9 +172,10 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderDTO> getBuyerOrders(Long buyerId) throws AppException {
         try {
             List<Order> list = orderDAO.findByBuyerId(buyerId);
+            Map<Long, String> prodCache = new HashMap<>();
             List<OrderDTO> dtos = new ArrayList<>(list.size());
             for (Order o : list) {
-                dtos.add(buildOrderDTO(o));
+                dtos.add(buildOrderDTO(o, prodCache));
             }
             return dtos;
         } catch (SQLException e) {
@@ -186,9 +189,10 @@ public class OrderServiceImpl implements OrderService {
         ValidationUtil.validateId(sellerId, "sellerId");
         try {
             List<Order> list = orderDAO.findOrdersBySellerId(sellerId);
+            Map<Long, String> prodCache = new HashMap<>();
             List<OrderDTO> dtos = new ArrayList<>(list.size());
             for (Order o : list) {
-                dtos.add(buildOrderDTO(o));
+                dtos.add(buildOrderDTO(o, prodCache));
             }
             return dtos;
         } catch (SQLException e) {
@@ -199,6 +203,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void updateOrderStatus(Long orderId, OrderStatus newStatus) throws AppException {
+        updateOrderStatus(orderId, newStatus, null, true);
+    }
+
+    @Override
+    public void updateOrderStatus(Long orderId, OrderStatus newStatus, Long sellerId, boolean isAdmin) throws AppException {
         ValidationUtil.validateId(orderId, "orderId");
         ValidationUtil.validateNotNull(newStatus, "newStatus");
 
@@ -208,18 +217,38 @@ public class OrderServiceImpl implements OrderService {
                 throw new ResourceNotFoundException("Order not found with ID: " + orderId);
             }
             Order current = opt.get();
+            // IDOR Protection: Non-admin sellers can only update orders containing their products
+            if (!isAdmin) {
+                if (sellerId == null) {
+                    throw new ForbiddenException("Seller ID is required for order status updates");
+                }
+                List<OrderItem> items = orderDAO.findItemsByOrderId(orderId);
+                boolean containsSellerProduct = false;
+                for (OrderItem item : items) {
+                    Optional<Product> prodOpt = productDAO.findById(item.getProductId());
+                    if (prodOpt.isPresent() && sellerId.equals(prodOpt.get().getSellerId())) {
+                        containsSellerProduct = true;
+                        break;
+                    }
+                }
+                if (!containsSellerProduct) {
+                    throw new ForbiddenException("You are not authorized to update this order");
+                }
+            }
+
             if (current.getStatus() == OrderStatus.DELIVERED) {
                 throw new com.rohith.rohithmart.exception.OrderException("Cannot change status of a delivered order");
             }
             if (current.getStatus() == OrderStatus.CANCELLED) {
                 throw new com.rohith.rohithmart.exception.OrderException("Cannot change status of a cancelled order");
             }
+
             if (current.getStatus() == newStatus) {
                 return;
             }
 
             orderDAO.updateStatus(orderId, newStatus);
-            logger.info("Order ID {} status updated from {} to {}", orderId, current.getStatus(), newStatus);
+            logger.info("Order ID {} status updated from {} to {} by sellerId={}", orderId, current.getStatus(), newStatus, sellerId);
         } catch (SQLException e) {
             logger.error("Failed to update status for order ID {}", orderId, e);
             throw new AppException("Status update failed", e, 500);
@@ -259,9 +288,10 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderDTO> getAllOrders() throws AppException {
         try {
             List<Order> list = orderDAO.findAll();
+            Map<Long, String> prodCache = new HashMap<>();
             List<OrderDTO> dtos = new ArrayList<>(list.size());
             for (Order o : list) {
-                dtos.add(buildOrderDTO(o));
+                dtos.add(buildOrderDTO(o, prodCache));
             }
             return dtos;
         } catch (SQLException e) {
@@ -281,6 +311,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderDTO buildOrderDTO(Order order) throws SQLException {
+        return buildOrderDTO(order, new HashMap<>());
+    }
+
+    private OrderDTO buildOrderDTO(Order order, Map<Long, String> productNameCache) throws SQLException {
         OrderDTO dto = new OrderDTO();
         dto.setId(order.getId());
         dto.setBuyerId(order.getBuyerId());
@@ -294,8 +328,14 @@ public class OrderServiceImpl implements OrderService {
             OrderItemDTO idto = new OrderItemDTO();
             idto.setId(oi.getId());
             idto.setProductId(oi.getProductId());
-            Optional<Product> pOpt = productDAO.findById(oi.getProductId());
-            idto.setProductName(pOpt.map(Product::getName).orElse("Product #" + oi.getProductId()));
+            String prodName = productNameCache.computeIfAbsent(oi.getProductId(), pid -> {
+                try {
+                    return productDAO.findById(pid).map(Product::getName).orElse("Product #" + pid);
+                } catch (SQLException e) {
+                    return "Product #" + pid;
+                }
+            });
+            idto.setProductName(prodName);
             idto.setQuantity(oi.getQuantity());
             idto.setUnitPrice(oi.getUnitPrice());
             idto.setSubtotal(oi.getUnitPrice().multiply(BigDecimal.valueOf(oi.getQuantity())));

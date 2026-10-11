@@ -19,17 +19,23 @@
             </div>
         </div>
 
+        <div class="dashboard-nav-tabs">
+            <a href="${pageContext.request.contextPath}/seller/dashboard" class="tab">Dashboard Overview</a>
+            <a href="${pageContext.request.contextPath}/seller/products" class="tab active">All Listings</a>
+            <a href="${pageContext.request.contextPath}/seller/orders" class="tab">Incoming Orders</a>
+        </div>
+
         <div class="table-card">
             <table class="data-table">
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Image</th>
-                        <th>Product Name</th>
+                        <th>Product</th>
                         <th>Category</th>
                         <th>Price</th>
                         <th>Stock</th>
-                        <th>Actions</th>
+                        <th>Rating</th>
+                        <th style="text-align:right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -39,17 +45,41 @@
                                 <tr>
                                     <td>#<c:out value="${p.id}"/></td>
                                     <td>
-                                        <img src="<c:out value="${p.imageUrl != null && !p.imageUrl.isEmpty() ? p.imageUrl : 'https://via.placeholder.com/50'}"/>" alt="thumb" class="table-thumbnail">
+                                        <div style="display:flex;align-items:center;gap:0.75rem;">
+                                            <img src="<c:out value="${p.imageUrl != null && !p.imageUrl.isEmpty() ? p.imageUrl : 'https://via.placeholder.com/48'}"/>" alt="thumb" class="table-thumbnail">
+                                            <a href="${pageContext.request.contextPath}/products/detail?id=${p.id}" target="_blank" style="font-weight:600;color:var(--text-primary);text-decoration:none;">
+                                                <c:out value="${p.name}"/>
+                                            </a>
+                                        </div>
                                     </td>
-                                    <td><strong><c:out value="${p.name}"/></strong></td>
-                                    <td><c:out value="${p.category}"/></td>
+                                    <td><span class="badge"><c:out value="${p.category}"/></span></td>
                                     <td>$<fmt:formatNumber value="${p.price}" minFractionDigits="2" maxFractionDigits="2"/></td>
-                                    <td><c:out value="${p.stockQty}"/></td>
                                     <td>
-                                        <a href="${pageContext.request.contextPath}/seller/products/edit?id=${p.id}" class="btn btn-sm btn-outline">Edit</a>
-                                        <form action="${pageContext.request.contextPath}/seller/products/delete" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this listing?');">
+                                        <c:choose>
+                                            <c:when test="${p.stockQty > 5}">
+                                                <span class="badge in-stock"><c:out value="${p.stockQty}"/> in stock</span>
+                                            </c:when>
+                                            <c:when test="${p.stockQty > 0}">
+                                                <span class="badge status-pending"><c:out value="${p.stockQty}"/> low</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="badge out-of-stock">0 units</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td>★ <fmt:formatNumber value="${p.averageRating}" minFractionDigits="1" maxFractionDigits="1"/></td>
+                                    <td style="text-align:right;">
+                                        <a href="${pageContext.request.contextPath}/seller/products/edit?id=${p.id}" class="btn btn-sm btn-outline" style="margin-right:0.25rem;">
+                                            Edit
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline btn-danger btn-delete-listing"
+                                                data-id="${p.id}"
+                                                data-name="<c:out value="${p.name}"/>">
+                                            Delete
+                                        </button>
+                                        <form id="delete-listing-form-${p.id}" action="${pageContext.request.contextPath}/seller/products/delete" method="post" style="display:none;">
+                                            <input type="hidden" name="_csrf" value="${_csrf_token}">
                                             <input type="hidden" name="id" value="${p.id}">
-                                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -57,7 +87,7 @@
                         </c:when>
                         <c:otherwise>
                             <tr>
-                                <td colspan="7" class="text-center">No listings found. Click "+ Add New Product" to create your first listing!</td>
+                                <td colspan="7" class="empty-state">No listings published yet. Click "+ Add New Product" to get started!</td>
                             </tr>
                         </c:otherwise>
                     </c:choose>
@@ -66,5 +96,25 @@
         </div>
     </div>
 </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn-delete-listing').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var id = this.getAttribute('data-id');
+            var name = this.getAttribute('data-name');
+            RohithMart.Modal.confirm(
+                'Delete Listing',
+                'Are you sure you want to permanently delete "' + name + '"? This will remove it from search and catalog views.',
+                function() {
+                    document.getElementById('delete-listing-form-' + id).submit();
+                },
+                'Delete Listing',
+                true
+            );
+        });
+    });
+});
+</script>
 
 <jsp:include page="../common/footer.jsp" />

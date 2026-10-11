@@ -10,6 +10,7 @@ public class ProductFilter {
     private String keyword;
     private BigDecimal minPrice;
     private BigDecimal maxPrice;
+    private Double minRating;
     private Boolean inStockOnly;
     private Long sellerId;
     private String sortBy; // "price_asc", "price_desc", "name_asc", "name_desc", "newest"
@@ -53,6 +54,14 @@ public class ProductFilter {
 
     public void setMaxPrice(BigDecimal maxPrice) {
         this.maxPrice = maxPrice;
+    }
+
+    public Double getMinRating() {
+        return minRating;
+    }
+
+    public void setMinRating(Double minRating) {
+        this.minRating = minRating;
     }
 
     public Boolean getInStockOnly() {
@@ -119,6 +128,11 @@ public class ProductFilter {
 
         public Builder maxPrice(BigDecimal maxPrice) {
             filter.setMaxPrice(maxPrice);
+            return this;
+        }
+
+        public Builder minRating(Double minRating) {
+            filter.setMinRating(minRating);
             return this;
         }
 

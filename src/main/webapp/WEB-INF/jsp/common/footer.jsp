@@ -44,6 +44,23 @@
     </div>
 </div>
 
+<!-- Global Accessible Confirmation Modal -->
+<div id="global-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="modal-title" class="modal-title">Confirm Action</h3>
+            <button type="button" class="modal-close" id="modal-close-btn" aria-label="Close dialog">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-desc">
+            Are you sure you want to perform this action?
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline btn-sm" id="modal-cancel-btn">Cancel</button>
+            <button type="button" class="btn btn-primary btn-sm" id="modal-confirm-btn">Confirm</button>
+        </div>
+    </div>
+</div>
+
 </div><!-- /.site-wrapper -->
 
 <script src="${pageContext.request.contextPath}/static/js/main.js"></script>

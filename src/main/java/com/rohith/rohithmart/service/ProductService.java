@@ -80,6 +80,19 @@ public interface ProductService {
     ProductDTO updateProduct(ProductDTO dto, Long sellerId) throws AppException;
 
     /**
+     * Updates an existing product listing with administrator override capability.
+     *
+     * @param dto updated product data
+     * @param userId user ID (seller or admin)
+     * @param isAdmin whether user has admin privileges
+     * @return updated ProductDTO
+     * @throws AppException if validation fails or unauthorized
+     */
+    default ProductDTO updateProduct(ProductDTO dto, Long userId, boolean isAdmin) throws AppException {
+        return updateProduct(dto, userId);
+    }
+
+    /**
      * Deletes a product listing.
      *
      * @param productId product ID

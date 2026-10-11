@@ -16,7 +16,9 @@
             <c:choose>
                 <c:when test="${not empty sessionScope.user}">
                     <c:if test="${sessionScope.user.role == 'BUYER'}">
-                        <a href="${pageContext.request.contextPath}/cart" class="cart-link">Cart</a>
+                        <a href="${pageContext.request.contextPath}/cart" class="cart-link">
+                            Cart <span id="nav-cart-badge" class="badge badge-navy" style="display:none;font-size:0.75rem;padding:0.15rem 0.45rem;border-radius:10px;">0</span>
+                        </a>
                         <a href="${pageContext.request.contextPath}/buyer/orders">My Orders</a>
                     </c:if>
                     <c:if test="${sessionScope.user.role == 'SELLER'}">

@@ -2,10 +2,10 @@ package com.rohith.rohithmart.controller;
 
 import com.rohith.rohithmart.dto.ChatRequestDTO;
 import com.rohith.rohithmart.dto.ChatResponseDTO;
-import com.rohith.rohithmart.exception.AppException;
+import com.rohith.rohithmart.exception.ValidationException;
 import com.rohith.rohithmart.service.ChatService;
 import com.rohith.rohithmart.service.ServiceFactory;
-import com.rohith.rohithmart.util.JsonUtil;
+import com.rohith.rohithmart.util.ValidationUtil;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -14,34 +14,40 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * AI assistant endpoint as specified in Capstone Section 11 and 17:
- * POST /api/chat { "message": "..." } -> { "reply": "..." }
+ * AI assistant endpoint maintaining server-side provider abstraction:
+ * POST /api/chat { "message": "..." } -> Standard ApiResponse with ChatResponseDTO payload.
  */
 @WebServlet(name = "ChatServlet", urlPatterns = {"/api/chat"})
 public class ChatServlet extends BaseServlet {
 
-    private final ChatService chatService = ServiceFactory.getChatService();
+    private final ChatService chatService;
+
+    public ChatServlet() {
+        this(ServiceFactory.getChatService());
+    }
+
+    public ChatServlet(ChatService chatService) {
+        this.chatService = chatService;
+    }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        res.setContentType("application/json;charset=UTF-8");
-
         try {
-            ChatRequestDTO requestDTO = JsonUtil.fromJson(req.getReader(), ChatRequestDTO.class);
-            if (requestDTO == null || requestDTO.getMessage() == null) {
-                sendJsonError(res, HttpServletResponse.SC_BAD_REQUEST, "VALIDATION_ERROR", "Message is required");
-                return;
+            ChatRequestDTO requestDTO = parseJson(req, ChatRequestDTO.class);
+            if (requestDTO == null || !ValidationUtil.isNotEmpty(requestDTO.getMessage())) {
+                throw new ValidationException("Message is required", "message", "Message cannot be empty");
             }
 
             HttpSession session = req.getSession(true);
             ChatResponseDTO responseDTO = chatService.ask(requestDTO.getMessage(), session);
 
-            res.getWriter().write(JsonUtil.toJson(responseDTO));
-        } catch (AppException e) {
-            sendJsonError(res, e.getStatusCode(), "CHAT_ERROR", e.getMessage());
+            sendJsonResponse(res, HttpServletResponse.SC_OK, responseDTO);
         } catch (Exception e) {
-            logger.error("Error processing AI chat request", e);
-            sendJsonError(res, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "SERVER_ERROR", "Chat service unavailable");
+            try {
+                handleException(req, res, e);
+            } catch (Exception ex) {
+                logger.error("Unhandled exception in ChatServlet", ex);
+            }
         }
     }
 }

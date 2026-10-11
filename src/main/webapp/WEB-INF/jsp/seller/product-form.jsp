@@ -13,6 +13,7 @@
             <h2><c:out value="${isEdit ? 'Edit Product Listing' : 'Create New Product Listing'}"/></h2>
             
             <form action="${pageContext.request.contextPath}${isEdit ? '/seller/products/edit' : '/seller/products/new'}" method="post">
+                <input type="hidden" name="_csrf" value="${_csrf_token}">
                 <c:if test="${isEdit}">
                     <input type="hidden" name="id" value="${product.id}">
                 </c:if>

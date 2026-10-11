@@ -125,4 +125,35 @@ public class ReviewDAOImpl implements ReviewDAO {
         }
         return review;
     }
+
+    @Override
+    public java.util.Map<Long, double[]> getRatingStatsForProducts(List<Long> productIds) throws SQLException {
+        if (productIds == null || productIds.isEmpty()) {
+            return java.util.Collections.emptyMap();
+        }
+        java.util.Map<Long, double[]> stats = new java.util.HashMap<>();
+        StringBuilder sql = new StringBuilder(
+                "SELECT product_id, COALESCE(AVG(CAST(rating AS DOUBLE)), 0.0) AS avg_rating, COUNT(*) AS review_count " +
+                "FROM reviews WHERE product_id IN (");
+        for (int i = 0; i < productIds.size(); i++) {
+            sql.append(i == 0 ? "?" : ", ?");
+        }
+        sql.append(") GROUP BY product_id");
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < productIds.size(); i++) {
+                ps.setLong(i + 1, productIds.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    long pid = rs.getLong("product_id");
+                    double avg = rs.getDouble("avg_rating");
+                    int count = rs.getInt("review_count");
+                    stats.put(pid, new double[]{avg, count});
+                }
+            }
+        }
+        return stats;
+    }
 }

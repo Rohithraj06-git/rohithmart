@@ -65,4 +65,16 @@ public interface ReviewDAO {
      * @throws SQLException on database failure
      */
     Review create(Review review) throws SQLException;
+
+    /**
+     * Bulk calculates rating statistics (average rating and count) for a list of product IDs in a single query.
+     * Prevents N+1 database roundtrips during catalog browsing and search.
+     *
+     * @param productIds list of product IDs
+     * @return map of productId -> double[]{averageRating, count}
+     * @throws SQLException on database failure
+     */
+    default java.util.Map<Long, double[]> getRatingStatsForProducts(List<Long> productIds) throws SQLException {
+        return java.util.Collections.emptyMap();
+    }
 }

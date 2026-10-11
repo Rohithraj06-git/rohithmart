@@ -64,9 +64,30 @@
                                 <h3 class="product-title">
                                     <a href="${pageContext.request.contextPath}/products/detail?id=${p.id}"><c:out value="${p.name}"/></a>
                                 </h3>
+                                
+                                <div class="rating-stars" style="margin-bottom:0.5rem;">
+                                    <span>★</span>
+                                    <span class="rating-score"><fmt:formatNumber value="${p.averageRating}" minFractionDigits="1" maxFractionDigits="1"/></span>
+                                    <span class="rating-count">(${p.reviewCount})</span>
+                                </div>
+
+                                <div style="margin-bottom:0.5rem;">
+                                    <c:choose>
+                                        <c:when test="${p.stockQty > 5}">
+                                            <span class="badge in-stock">In Stock</span>
+                                        </c:when>
+                                        <c:when test="${p.stockQty > 0}">
+                                            <span class="badge status-pending">Only ${p.stockQty} left</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="badge out-of-stock">Out of Stock</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+
                                 <div class="product-bottom">
                                     <span class="product-price">$<fmt:formatNumber value="${p.price}" minFractionDigits="2" maxFractionDigits="2"/></span>
-                                    <button class="btn btn-sm btn-primary add-to-cart-btn" data-product-id="${p.id}">Add to Cart</button>
+                                    <button type="button" class="btn btn-sm btn-primary add-to-cart-btn" data-product-id="${p.id}">Add to Cart</button>
                                 </div>
                             </div>
                         </div>

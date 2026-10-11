@@ -78,10 +78,25 @@ public class ProductDTO extends ProductResponse {
         }
 
         @Override
+        public Builder averageRating(Double averageRating) {
+            super.averageRating(averageRating);
+            return this;
+        }
+
+        @Override
+        public Builder reviewCount(Integer reviewCount) {
+            super.reviewCount(reviewCount);
+            return this;
+        }
+
+        @Override
         public ProductDTO build() {
             ProductResponse r = super.build();
-            return new ProductDTO(r.getId(), r.getSellerId(), r.getName(), r.getDescription(),
+            ProductDTO dto = new ProductDTO(r.getId(), r.getSellerId(), r.getName(), r.getDescription(),
                     r.getPrice(), r.getStockQty(), r.getCategory(), r.getImageUrl(), r.getCreatedAt());
+            dto.setAverageRating(r.getAverageRating());
+            dto.setReviewCount(r.getReviewCount());
+            return dto;
         }
     }
 }

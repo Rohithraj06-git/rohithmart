@@ -11,8 +11,11 @@
     <div class="dashboard-container">
         <div class="dashboard-header">
             <div>
-                <h1>Incoming Orders</h1>
-                <p>Manage and fulfill orders placed for your products</p>
+                <h1>Incoming Buyer Orders</h1>
+                <p>Manage order fulfillment lifecycle and dispatch statuses for your store</p>
+            </div>
+            <div>
+                <a href="${pageContext.request.contextPath}/seller/dashboard" class="btn btn-outline btn-sm">&larr; Back to Dashboard</a>
             </div>
         </div>
 
@@ -21,38 +24,48 @@
                 <thead>
                     <tr>
                         <th>Order ID</th>
-                        <th>Date</th>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th>Unit Price</th>
-                        <th>Subtotal</th>
-                        <th>Status</th>
-                        <th>Action</th>
+                        <th>Order Placed</th>
+                        <th>Items Ordered</th>
+                        <th>Order Total</th>
+                        <th>Current Status</th>
+                        <th style="text-align:right;">Update Fulfillment</th>
                     </tr>
                 </thead>
                 <tbody>
                     <c:choose>
-                        <c:when test="${not empty sellerOrders}">
-                            <c:forEach var="so" items="${sellerOrders}">
+                        <c:when test="${not empty orders}">
+                            <c:forEach var="o" items="${orders}">
                                 <tr>
-                                    <td>#<c:out value="${so.orderId}"/></td>
-                                    <td><fmt:formatDate value="${so.createdAt}" pattern="MMM dd, yyyy"/></td>
-                                    <td><c:out value="${so.productName}"/></td>
-                                    <td><c:out value="${so.quantity}"/></td>
-                                    <td>$<fmt:formatNumber value="${so.unitPrice}" minFractionDigits="2" maxFractionDigits="2"/></td>
-                                    <td>$<fmt:formatNumber value="${so.subtotal}" minFractionDigits="2" maxFractionDigits="2"/></td>
+                                    <td><strong>#<c:out value="${o.id}"/></strong></td>
+                                    <td><fmt:formatDate value="${o.createdAt}" pattern="MMM dd, yyyy HH:mm"/></td>
                                     <td>
-                                        <span class="badge status-<c:out value="${so.status.toLowerCase()}"/>"><c:out value="${so.status}"/></span>
+                                        <div style="display:flex;flex-direction:column;gap:0.25rem;">
+                                            <c:forEach var="item" items="${o.items}">
+                                                <span style="font-size:0.9rem;">
+                                                    <c:out value="${item.productName}"/> &times; <strong>${item.quantity}</strong>
+                                                    <span style="color:var(--text-secondary);font-size:0.8rem;">($<fmt:formatNumber value="${item.unitPrice}" minFractionDigits="2" maxFractionDigits="2"/>)</span>
+                                                </span>
+                                            </c:forEach>
+                                        </div>
+                                    </td>
+                                    <td style="font-weight:700;color:var(--primary-color);">
+                                        $<fmt:formatNumber value="${o.totalAmount}" minFractionDigits="2" maxFractionDigits="2"/>
                                     </td>
                                     <td>
-                                        <form action="${pageContext.request.contextPath}/seller/orders/status" method="post" style="display:inline;">
-                                            <input type="hidden" name="orderId" value="${so.orderId}">
-                                            <select name="status" onchange="this.form.submit()" class="sm-select">
-                                                <option value="PENDING" ${so.status == 'PENDING' ? 'selected' : ''}>Pending</option>
-                                                <option value="CONFIRMED" ${so.status == 'CONFIRMED' ? 'selected' : ''}>Confirmed</option>
-                                                <option value="SHIPPED" ${so.status == 'SHIPPED' ? 'selected' : ''}>Shipped</option>
-                                                <option value="DELIVERED" ${so.status == 'DELIVERED' ? 'selected' : ''}>Delivered</option>
-                                                <option value="CANCELLED" ${so.status == 'CANCELLED' ? 'selected' : ''}>Cancelled</option>
+                                        <span class="badge status-<c:out value="${o.status.name().toLowerCase()}"/>">
+                                            <c:out value="${o.status}"/>
+                                        </span>
+                                    </td>
+                                    <td style="text-align:right;">
+                                        <form action="${pageContext.request.contextPath}/seller/orders/status" method="post" style="display:inline-flex;align-items:center;gap:0.5rem;">
+                                            <input type="hidden" name="_csrf" value="${_csrf_token}">
+                                            <input type="hidden" name="orderId" value="${o.id}">
+                                            <select name="status" class="sm-select" onchange="this.form.submit()" aria-label="Order Status">
+                                                <option value="PENDING" ${o.status == 'PENDING' ? 'selected' : ''}>PENDING</option>
+                                                <option value="CONFIRMED" ${o.status == 'CONFIRMED' ? 'selected' : ''}>CONFIRMED</option>
+                                                <option value="SHIPPED" ${o.status == 'SHIPPED' ? 'selected' : ''}>SHIPPED</option>
+                                                <option value="DELIVERED" ${o.status == 'DELIVERED' ? 'selected' : ''}>DELIVERED</option>
+                                                <option value="CANCELLED" ${o.status == 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
                                             </select>
                                         </form>
                                     </td>
@@ -61,7 +74,7 @@
                         </c:when>
                         <c:otherwise>
                             <tr>
-                                <td colspan="8" class="text-center">No incoming orders for your listings yet.</td>
+                                <td colspan="6" class="empty-state">No buyer orders placed for your listings yet.</td>
                             </tr>
                         </c:otherwise>
                     </c:choose>

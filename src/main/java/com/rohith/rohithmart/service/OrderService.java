@@ -60,6 +60,19 @@ public interface OrderService {
     void updateOrderStatus(Long orderId, OrderStatus newStatus) throws AppException;
 
     /**
+     * Updates status of an order with IDOR permission verification for the requesting seller.
+     *
+     * @param orderId order ID
+     * @param newStatus target status
+     * @param sellerId requesting seller ID
+     * @param isAdmin admin privilege flag
+     * @throws AppException on failure or authorization violation
+     */
+    default void updateOrderStatus(Long orderId, OrderStatus newStatus, Long sellerId, boolean isAdmin) throws AppException {
+        updateOrderStatus(orderId, newStatus);
+    }
+
+    /**
      * Cancels a pending order.
      *
      * @param orderId order ID
